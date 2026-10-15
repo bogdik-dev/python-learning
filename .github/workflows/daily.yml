@@ -1,0 +1,29 @@
+name: Daily File
+
+on:
+  schedule:
+    - cron: '0 9 * * *'
+  workflow_dispatch:
+
+jobs:
+  move-file:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Move one file
+        run: |
+          FILE=$(ls queue/ | head -n 1)
+          if [ -n "$FILE" ]; then
+            git mv "queue/$FILE" "$FILE"
+          else
+            echo "Очередь пуста"
+            exit 0
+          fi
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git commit -m "Daily: $FILE" || echo "Нет изменений"
+          git push
